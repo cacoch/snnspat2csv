@@ -1,0 +1,51 @@
+A.4.1
+Terminal Symbols
+WHITE            {" " | "\t"}
+FREE             {^"\n"} /* anything up to EOL */
+COMMENT          "#" FREE "\n"
+L_BRACKET        "["
+R_BRACKET        "]"
+INT              ["0"-"9"]
+V_NUMBER         [Vv]{INT}+"."{INT}+ /* version number */
+NUMBER           [-+]?{{INT}+ | {INT}+{EXP} |{INT}+"."{INT}*({EXP})?  |
+                 {INT}*"."{INT}+({EXP})?}
+EXP              [Ee][-+]?{INT}+
+VERSION_HEADER   "SNNS pattern definition file"
+GENERATED_AT     "generated at" {FREE}* "\n"
+NO_OF_PATTERN    "No. of patterns" {WHITE}* ":"
+NO_OF_INPUT      "No. of input units" {WHITE}* ":"
+NO_OF_OUTPUT     "No. of output units" {WHITE}* ":"
+NO_OF_VAR_IDIM   "No. of variable input dimensions" {WHITE}* ":"
+NO_OF_VAR_ODIM   "No. of variable output dimensions" {WHITE}* ":"
+MAXIMUM_IDIM     "Maximum input dimensions" {WHITE}* ":"
+MAXIMUM_ODIM     "Maximum output dimensions" {WHITE}* ":"
+NO_OF_CLASSES    "No.  of classes" {WHITE}* ":"
+CLASS_REDISTRIB  "Class redistribution" {WHITE}* ":"
+REMAPFUNCTION    "Remap function" {WHITE}* ":"
+REMAP_PARAM      "Remap parameters" {WHITE}* ":"
+
+Grammar
+pattern_file    ::= header pattern_list
+
+header          ::= VERSION_HEADER V_NUMBER GENERATED_AT NO_OF_PATTERN NUMBER
+	            i_head [o_head] [vi_head] [vo_head] [cl_head] [rm_head]
+i_head          ::= NO_OF_INPUT NUMBER
+o_head          ::= NO_OF_OUTPUT NUMBER
+vi_head         ::= NO_OF_VAR_IDIM NUMBER MAXIMUM_IDIM actual_dim
+vo_head         ::= NO_OF_VAR_ODIM NUMBER MAXIMUM_ODIM actual_dim
+cl_head         ::= NO_OF_CLASSES NUMBER [cl_distrib]
+rm_head         ::= REMAPFUNCTION NAME [rm_params]
+actual_dim      ::= L_BRACKET actual_dim_rest R_BRACKET |
+                    L_BRACKET R_BRACKET
+actual_dim_rest ::= NUMBER | actual_dim_rest NUMBER
+
+cl_distrib      ::= CLASS_REDISTRIB L_BRACKET paramlist R_BRACKET
+
+rm_params       ::= REMAP_PARAM L_BRACKET paramlist R_BRACKET
+paramlist       ::= NUMBER | paramlist NUMBER
+
+pattern_list    ::= pattern | pattern_list pattern
+pattern         ::= pattern_start pattern_body pattern_class
+pattern_start   ::= [actual_dim]
+pattern_body    ::= NUMBER | pattern_body NUMBER
+pattern_class   ::= NUMBER | NAME
