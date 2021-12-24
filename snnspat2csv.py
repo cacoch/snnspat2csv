@@ -10,9 +10,6 @@ in_0,in_1,in_2, ...,in_79,in_y,out_0,out_1,out_x # first pattern
 in_0,in_1,in_2, ...,in_79,in_y,out_0,out_1,out_x # second pattern
 
 """
-# $LastChangedDate: 2021-05-24 01:25:18 -0500 (Mon, 24 May 2021) $
-# $Rev: 48 $
-# $Author: cacoch $
 
 import pyparsing as pp
 from pyparsing import (Regex,
@@ -31,9 +28,10 @@ import sys
 from itertools import zip_longest
 import itertools
 
+
+# Grammar definition
 def grammar():
 
-    # Grammar definition
     #pp.ParserElement.setDefaultWhitespaceChars('')
 
     VERSION_HEADER  = Literal("SNNS pattern definition file").suppress()
@@ -68,7 +66,6 @@ def grammar():
 
 def grouper(n, iterable, fillvalue=None):
     "Collect data into fixed-length chunks or blocks"
-    # grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx
     args = [iter(iterable)] * n
     return izip_longest(fillvalue=fillvalue, *args)
 
@@ -96,12 +93,8 @@ def save_csv(filename, data):
 
 
 
-    #splits = np.array_split(patts, no_inputs + no_outputs)
 
-    #with open(filename, 'w') as outfile:
-    #     json.dump(data, outfile)
-    #Pretty-Printing
-    # print(json.dumps(result.asList(), indent=4))
+
 
 def parse_args(args):
     prser = argparse.ArgumentParser(description='Convert SNNS pattern file to csv')
@@ -122,7 +115,6 @@ if __name__ == "__main__":
     #print(result.dump())
     save_csv("output.csv", result.as_dict())
     
-    #save_json(args.output, data)
     #parser.add_argument("y", type=int, help="the exponent")
     #parser.add_argument("-v", "--verbosity", action="count", default=0)
     #answer = args.x**args.y
