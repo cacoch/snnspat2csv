@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun Jan 10 02:56:38 2021
-Convert snns pattern files to csv 
+Convert snns pattern files to csv
 @author: cacoch
 
 output pattern format:
@@ -11,6 +11,10 @@ in_0,in_1,in_2, ...,in_79,in_y,out_0,out_1,out_x # second pattern
 
 """
 
+import sys
+import os
+import argparse
+from itertools import zip_longest
 import pyparsing as pp
 from pyparsing import (Regex,
         Literal,
@@ -23,10 +27,7 @@ from pyparsing import (Regex,
         alphanums,
         Combine)
 
-import argparse
-import sys
-from itertools import zip_longest
-import itertools
+#import itertools
 
 
 # Grammar definition
@@ -44,8 +45,8 @@ def grammar():
 
     NO_OF_PATTERN = (Literal("No. of patterns") + COLON).suppress()
     NO_OF_INPUT   = (Literal("No. of input units") + COLON).suppress()
-    NO_OF_OUTPUT  = (Literal("No. of output units") + COLON).suppress() 
-    NUMBER = (INT |  Combine('+'+ INT ) | Combine('-' + INT)| 
+    NO_OF_OUTPUT  = (Literal("No. of output units") + COLON).suppress()
+    NUMBER = (INT |  Combine('+'+ INT ) | Combine('-' + INT)|
             Combine(INT+ '.' + INT) | Combine('.' + INT ))
 
     n_patt          = (NO_OF_PATTERN + NUMBER)("no_patts")
@@ -59,15 +60,11 @@ def grammar():
 
 
 
-    gramm = header + pattern_list 
+    gramm = header + pattern_list
     gramm.ignore(Literal('#') + pp.restOfLine)
 
     return gramm
 
-def grouper(n, iterable, fillvalue=None):
-    "Collect data into fixed-length chunks or blocks"
-    args = [iter(iterable)] * n
-    return izip_longest(fillvalue=fillvalue, *args)
 
 def save_csv(filename, data):
     #print(data)
@@ -78,9 +75,10 @@ def save_csv(filename, data):
     patts = data['pattern']
     print(no_inputs, no_outputs, no_patts)
     #print(patts)
-    chunk_size = no_inputs + no_outputs 
+    chunk_size = no_inputs + no_outputs
 
-    chunked_list = [list(item) for item in list(zip_longest(*[iter(patts)]*chunk_size, fillvalue=''))]
+    chunked_list = [list(item) for item in list(zip_longest(
+                     *[iter(patts)]*chunk_size, fillvalue=''))]
     #print(chunked_list)
     result = ""
 
@@ -88,11 +86,8 @@ def save_csv(filename, data):
         csv_line = ','.join(map(str, el))
         result += csv_line + "\n"
     print(result)
-    file1 = open("myfile.txt","w")
-    file1.write(result)
-
-
-
+    file = open(filename,"w")
+    file.write(result)
 
 
 
@@ -105,16 +100,20 @@ def parse_args(args):
 
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
+            
+    if args.output is None:
+        output_file = os.path.basename(args.input)
+        output_file = output_file.split('.')[0] + '.csv'
 
-    print("\n\n###################")
+
+    print(f'Parsing {args.input} file to {output_file}')
     parser = grammar()
 
-    
 
     result = parser.parseFile(args.input)
     #print(result.dump())
-    save_csv("output.csv", result.as_dict())
-    
+    save_csv(output_file, result.as_dict())
+
     #parser.add_argument("y", type=int, help="the exponent")
     #parser.add_argument("-v", "--verbosity", action="count", default=0)
     #answer = args.x**args.y
