@@ -16,16 +16,11 @@ import os
 import argparse
 from itertools import zip_longest
 import pyparsing as pp
-from pyparsing import (Regex,
-        Literal,
+from pyparsing import (Literal,
         Opt,
-        Group,
-        LineStart,
         LineEnd,
         Word,
         OneOrMore,
-        restOfLine,
-        alphanums,
         Combine)
 
 #pp.enable_diag()
@@ -33,8 +28,8 @@ from pyparsing import (Regex,
 
 
 
-# Grammar definition
 def grammar():
+    """Grammar definition"""
 
     #pp.ParserElement.setDefaultWhitespaceChars('')
 
@@ -51,8 +46,8 @@ def grammar():
     NO_OF_OUTPUT  = (Literal("No. of output units") + COLON).suppress()
     SIGN          = Opt(Word("-+", exact=1))
 
-    
-     
+
+
     NUMBER = Combine(SIGN + INT + DOT + INT) | Combine('.' + INT ) | Combine(SIGN + INT )
 
     n_patt          = (NO_OF_PATTERN + NUMBER)("no_patts")
@@ -73,6 +68,8 @@ def grammar():
 
 
 def save_csv(filename, data):
+    """Convert string to csv and save to file"""
+
     #print(data)
     print("===")
     no_inputs = int(data['no_inputs'][0])
@@ -86,18 +83,20 @@ def save_csv(filename, data):
     chunked_list = [list(item) for item in list(zip_longest(
                      *[iter(patts)]*chunk_size, fillvalue=''))]
     #print(chunked_list)
-    result = ""
+    csv_str = ""
 
     for el in chunked_list:
         csv_line = ','.join(map(str, el))
-        result += csv_line + "\n"
-    
-    with open(filename,"w") as f:
-        f.write(result)
+        csv_str += csv_line + "\n"
+
+    with open(filename,"w",encoding="utf-8") as f:
+        f.write(csv_str)
 
 
 
 def parse_args(args):
+    """Parse command line arguments"""
+
     prser = argparse.ArgumentParser(description='Convert SNNS pattern file to csv')
     prser.add_argument("input", help="input pat pattern file")
     prser.add_argument("output", help="output json pattern file", nargs='?')
@@ -106,7 +105,7 @@ def parse_args(args):
 
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
-            
+
     if args.output is None:
         output_file = os.path.basename(args.input)
         output_file = output_file.split('.')[0] + '.csv'
@@ -118,7 +117,12 @@ if __name__ == "__main__":
     parser = grammar()
 
 
-    result = parser.parseFile(args.input, parse_all=True)
+    #result = parser.parseFile(args.input, parse_all=True)
+    with  open(args.input, 'r') as f:
+    #with open(args.input, 'r', encoding="utf-8", errors="ignore") as f:
+        data = f.read()
+        result = parser.parse_string(data, parse_all=True)
+
     #print(result.dump())
     save_csv(output_file, result.as_dict())
 
