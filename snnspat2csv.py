@@ -18,6 +18,7 @@ from itertools import zip_longest
 import pyparsing as pp
 from pyparsing import (Regex,
         Literal,
+        Opt,
         Group,
         LineStart,
         LineEnd,
@@ -27,7 +28,9 @@ from pyparsing import (Regex,
         alphanums,
         Combine)
 
-#import itertools
+#pp.enable_diag()
+#pp.__diag__.enable_debug_on_named_expressions = True
+
 
 
 # Grammar definition
@@ -46,8 +49,11 @@ def grammar():
     NO_OF_PATTERN = (Literal("No. of patterns") + COLON).suppress()
     NO_OF_INPUT   = (Literal("No. of input units") + COLON).suppress()
     NO_OF_OUTPUT  = (Literal("No. of output units") + COLON).suppress()
-    NUMBER = (INT |  Combine('+'+ INT ) | Combine('-' + INT)|
-            Combine(INT+ '.' + INT) | Combine('.' + INT ))
+    SIGN          = Opt(Word("-+", exact=1))
+
+    
+     
+    NUMBER = Combine(SIGN + INT + DOT + INT) | Combine('.' + INT ) | Combine(SIGN + INT )
 
     n_patt          = (NO_OF_PATTERN + NUMBER)("no_patts")
     i_head          = (NO_OF_INPUT + NUMBER)("no_inputs")
@@ -85,9 +91,9 @@ def save_csv(filename, data):
     for el in chunked_list:
         csv_line = ','.join(map(str, el))
         result += csv_line + "\n"
-    print(result)
-    file = open(filename,"w")
-    file.write(result)
+    
+    with open(filename,"w") as f:
+        f.write(result)
 
 
 
@@ -104,13 +110,15 @@ if __name__ == "__main__":
     if args.output is None:
         output_file = os.path.basename(args.input)
         output_file = output_file.split('.')[0] + '.csv'
+    else:
+        output_file = args.output
 
 
     print(f'Parsing {args.input} file to {output_file}')
     parser = grammar()
 
 
-    result = parser.parseFile(args.input)
+    result = parser.parseFile(args.input, parse_all=True)
     #print(result.dump())
     save_csv(output_file, result.as_dict())
 
